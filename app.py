@@ -1,7 +1,7 @@
 import os
 import shutil
 from flask import Flask, jsonify
-from werkzeug.urls import quote  # Updated import statement
+from werkzeug.utils import quote
 
 app = Flask(__name__)
 
@@ -21,7 +21,7 @@ def delete_files():
     try:
         # Check if the temp directory exists, create if not
         if not directory_exists(temp_directory):
-            print(f"Temp directory {temp_directory} does not exist.")
+            app.logger.error(f"Temp directory {temp_directory} does not exist.")
             return jsonify({"error": "Temp directory does not exist"}), 404
 
         # Read the contents of the temp directory
@@ -33,20 +33,20 @@ def delete_files():
             try:
                 if os.path.isfile(file_path):
                     os.unlink(file_path)
-                    print(f"File {file_path} deleted successfully")
+                    app.logger.info(f"File {file_path} deleted successfully")
                 elif os.path.isdir(file_path):
                     shutil.rmtree(file_path)
-                    print(f"Directory {file_path} deleted successfully")
+                    app.logger.info(f"Directory {file_path} deleted successfully")
             except PermissionError as perm_error:
-                print(f"Permission error deleting {os.path.basename(file_path)}: {perm_error}")
+                app.logger.error(f"Permission error deleting {os.path.basename(file_path)}: {perm_error}")
             except Exception as delete_error:
-                print(f"Error deleting {os.path.basename(file_path)}: {delete_error}")
+                app.logger.error(f"Error deleting {os.path.basename(file_path)}: {delete_error}")
 
-        # Send a response once all deletions are attempted
-        return 'Deletion attempted for all files and directories'
+        # Send a JSON response indicating success
+        return jsonify({"message": "Deletion attempted for all files and directories"})
 
     except Exception as error:
-        print(f"Error: {error}")
+        app.logger.error(f"Error: {error}")
         return jsonify({"error": f"Internal Server Error: {str(error)}"}), 500
 
 if __name__ == '__main__':
