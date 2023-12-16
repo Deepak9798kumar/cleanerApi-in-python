@@ -1,7 +1,8 @@
 import os
 import shutil
 from flask import Flask, jsonify
-
+import urllib.parse
+from urllib.parse import quote as url_quote  # Use quote directly
 app = Flask(__name__)
 
 # Specify the path to the temp directory on Windows
