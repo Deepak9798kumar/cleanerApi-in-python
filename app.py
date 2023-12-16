@@ -1,7 +1,7 @@
 import os
 import shutil
 from flask import Flask, jsonify
-from urllib.parse import quote as url_quote  # Use quote directly
+from six.moves.urllib.parse import quote
 
 app = Flask(__name__)
 
