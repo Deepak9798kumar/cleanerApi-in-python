@@ -1,53 +1,50 @@
-import os
+from fastapi import FastAPI, HTTPException
 import shutil
-from flask import Flask, jsonify
-import urllib.parse
-from urllib.parse import quote as url_quote  # Use quote directly
-app = Flask(__name__)
+import os
 
-# Specify the path to the temp directory on Windows
-temp_directory = r'C:\Windows\Temp'
+app = FastAPI()
 
-def directory_exists(dir_path):
+# Your code for cleaning temporary files
+def clean_temp_files():
+    temp_directories = [
+        '/private/var/folders',
+        '~/Library/Caches',
+        '~/Library/Logs',
+        '~/Downloads',
+        '~/Desktop'
+    ]
+
+    extensions = [
+        '.log',
+        '.cache',
+        '.tmp',
+        '.dmg',
+        '.pkg'
+    ]
+
+    for directory in temp_directories:
+        for dirpath, dirnames, filenames in os.walk(os.path.expanduser(directory)):
+            for filename in filenames:
+                if os.path.splitext(filename)[1].lower() in extensions:
+                    filepath = os.path.join(dirpath, filename)
+                    try:
+                        if os.path.isfile(filepath):
+                            os.remove(filepath)
+                        elif os.path.isdir(filepath):
+                            shutil.rmtree(filepath)
+                        print(f"Removed {filepath}")
+                    except Exception as e:
+                        print(f"Error deleting {filepath}: {e}")
+
+# Define an API endpoint for cleaning temporary files
+@app.get("/clean_temp_files")
+def read_root():
     try:
-        os.access(dir_path, os.F_OK)
-        return True
-    except FileNotFoundError:
-        return False
+        clean_temp_files()
+        return {"message": "Temporary files cleaned successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
-# Define a route that triggers the file deletion
-@app.route('/delete-files')
-def delete_files():
-    try:
-        # Check if the temp directory exists, create if not
-        if not directory_exists(temp_directory):
-            app.logger.error(f"Temp directory {temp_directory} does not exist.")
-            return jsonify({"error": "Temp directory does not exist"}), 404
-
-        # Read the contents of the temp directory
-        files = os.listdir(temp_directory)
-
-        # Delete each file or directory
-        for file in files:
-            file_path = os.path.join(temp_directory, file)
-            try:
-                if os.path.isfile(file_path):
-                    os.unlink(file_path)
-                    app.logger.info(f"File {file_path} deleted successfully")
-                elif os.path.isdir(file_path):
-                    shutil.rmtree(file_path)
-                    app.logger.info(f"Directory {file_path} deleted successfully")
-            except PermissionError as perm_error:
-                app.logger.error(f"Permission error deleting {os.path.basename(file_path)}: {perm_error}")
-            except Exception as delete_error:
-                app.logger.error(f"Error deleting {os.path.basename(file_path)}: {delete_error}")
-
-        # Send a JSON response indicating success
-        return jsonify({"message": "Deletion attempted for all files and directories"})
-
-    except Exception as error:
-        app.logger.error(f"Error: {error}")
-        return jsonify({"error": f"Internal Server Error: {str(error)}"}), 500
-
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)
