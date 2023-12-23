@@ -4,48 +4,33 @@ import os
 
 app = FastAPI()
 
-# Your code for cleaning temporary files
+# API endpoint for cleaning temporary files
+@app.get("/clean_temp_files")
 def clean_temp_files():
-    temp_directories = [
-        '/private/var/folders',
-        '~/Library/Caches',
-        '~/Library/Logs',
-        '~/Downloads',
-        '~/Desktop'
-    ]
+    temp_directory = 'C:\\Windows\\Temp'
+    deleted_files = []
 
-    extensions = [
-        '.log',
-        '.cache',
-        '.tmp',
-        '.dmg',
-        '.pkg'
-    ]
+    print(f"Cleaning temporary files in directory: {temp_directory}")
 
-    for directory in temp_directories:
-        for dirpath, dirnames, filenames in os.walk(os.path.expanduser(directory)):
-            for filename in filenames:
-                if os.path.splitext(filename)[1].lower() in extensions:
-                    filepath = os.path.join(dirpath, filename)
-                    try:
+    try:
+        for dirpath, dirnames, filenames in os.walk(temp_directory):
+            for filename in filenames + dirnames:
+                filepath = os.path.join(dirpath, filename)
+                try:
+                    if os.path.exists(filepath):
                         if os.path.isfile(filepath):
-                            os.remove(filepath)
+                            os.unlink(filepath)  # Use os.unlink to delete files
+                            deleted_files.append(filepath)
+                            print(f"Removed file: {filepath}")
                         elif os.path.isdir(filepath):
                             shutil.rmtree(filepath)
-                        print(f"Removed {filepath}")
-                    except Exception as e:
-                        print(f"Error deleting {filepath}: {e}")
-
-# Define an API endpoint for cleaning temporary files
-@app.get("/clean_temp_files")
-def read_root():
-    try:
-        clean_temp_files()
-        return {"message": "Temporary files cleaned successfully."}
+                            deleted_files.append(filepath)
+                            print(f"Removed directory: {filepath}")
+                    else:
+                        print(f"Item does not exist: {filepath}")
+                except Exception as e:
+                    print(f"Error deleting {filepath}: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), reload=True)
-
+    return {"message": "Temporary files cleaned successfully.", "deleted_files": deleted_files}
