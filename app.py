@@ -1,11 +1,12 @@
 from fastapi import FastAPI, HTTPException
 import shutil
 import os
+import uvicorn
 
 app = FastAPI()
 
 # API endpoint for cleaning temporary files
-@app.get("/clean_temp_files")
+@app.get("/clean")
 def clean_temp_files():
     temp_directory = 'C:\\Windows\\Temp'
     deleted_files = []
@@ -34,3 +35,6 @@ def clean_temp_files():
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
     return {"message": "Temporary files cleaned successfully.", "deleted_files": deleted_files}
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=5000, log_level="info")
