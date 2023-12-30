@@ -37,7 +37,7 @@ def clean_temp_files():
     return {"message": "Temporary files cleaned successfully.", "deleted_files": deleted_files}
 
 if __name__ == "__main__":
-    # uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")
-      port = int(os.environ.get("PORT", 10000))
+    # Get the port from the PORT environment variable, default to 10000 if not set
+    port = int(os.environ.get("PORT", 8000))
     
-      uvicorn.run(app, host="127.0.0.1", port=port, log_level="info")
+    uvicorn.run(app, host="127.0.0.1", port=port, log_level="info")
