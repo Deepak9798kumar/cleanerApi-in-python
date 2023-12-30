@@ -38,6 +38,6 @@ def clean_temp_files():
 
 if __name__ == "__main__":
     # uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")
-      port = int(os.environ.get("PORT", 8000))
+      port = int(os.environ.get("PORT", 10000))
     
       uvicorn.run(app, host="127.0.0.1", port=port, log_level="info")
