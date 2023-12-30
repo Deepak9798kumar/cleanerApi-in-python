@@ -38,6 +38,6 @@ def clean_temp_files():
 
 if __name__ == "__main__":
     # Get the port from the PORT environment variable, default to 10000 if not set
-    port = int(os.environ.get("PORT",80))
+    port = int(os.environ.get("PORT",88))
     
     uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
