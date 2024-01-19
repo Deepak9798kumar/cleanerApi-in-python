@@ -6,6 +6,9 @@ import uvicorn
 app = FastAPI()
 
 # API endpoint for cleaning temporary files
+@app.get("/")
+def read_root():
+    return {"message": "Hello, it works!"}
 @app.get("/clean")
 def clean_temp_files():
     temp_directory = 'C:\\Windows\\Temp'
